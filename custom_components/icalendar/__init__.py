@@ -182,9 +182,10 @@ class iCalendarView(HomeAssistantView):
             # colours:
             #   - name: "Calendar Event Summary"
             #     colour: css3 colour name
-            for c in self.colours:
-                if ("name" in c) and (c['name'] == summary):
-                    response += f"COLOR:{c['colour']}\n"
+            if self.colours:
+                for c in self.colours:
+                    if ("name" in c) and (c['name'] == summary):
+                        response += f"COLOR:{c['colour']}\n"
 
             # Finish up this calendar entry
             response += "END:VEVENT\n"
