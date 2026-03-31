@@ -162,21 +162,21 @@ class iCalendarView(HomeAssistantView):
 
             # Add available optional attributes to the iCalendar response
             if summary is not None:
-                response += f"SUMMARY:{summary.replace('\n', '\n ').rstrip()}\n"
+                response += f"SUMMARY:{summary.replace('\n', '\\n').replace('\r', '').rstrip()}\n"
 
             if (
                 "description" in e
                 and e["description"] is not None
             ):
                 response += (
-                    f"DESCRIPTION:{escape(e['description']).replace('\n', '\n ').rstrip()}\n"
+                    f"DESCRIPTION:{escape(e['description']).replace('\n', '\\n').replace('\r', '').rstrip()}\n"
                 )
 
             if (
                 "location" in e
                 and e["location"] is not None
             ):
-                response += f"LOCATION:{escape(e['location']).replace('\n', '\n ').rstrip()}\n"
+                response += f"LOCATION:{escape(e['location']).replace('\n', '\\n').replace('\r', '').rstrip()}\n"
 
             # Set colour for event, defined in config as per below:
             # colours:
