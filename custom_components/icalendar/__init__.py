@@ -3,7 +3,6 @@
 import logging
 
 from typing import Optional
-from html import escape
 from http import HTTPStatus
 
 from aiohttp import web
@@ -121,14 +120,13 @@ class iCalendarView(HomeAssistantView):
         response += "PRODID:-//Home Assistant//iCal Subscription 1.1//EN\n"
         response += "CALSCALE:GREGORIAN\n"
         response += "METHOD:PUBLISH\n"
-        response += f"ORGANIZER;CN=\"{escape(self._state.attributes['friendly_name'])}\":MAILTO:{entity_id}@homeassistant.local\n"
-        response += f"NAME:{escape(self._state.attributes['friendly_name'])}\n"
-        response += f"X-WR-CALNAME:{escape(self._state.attributes['friendly_name'])}\n"
+        response += f"ORGANIZER;CN=\"{self._state.attributes['friendly_name']}\":MAILTO:{entity_id}@homeassistant.local\n"
+        response += f"NAME:{self._state.attributes['friendly_name']}\n"
+        response += f"X-WR-CALNAME:{self._state.attributes['friendly_name']}\n"
         if calendar_colour is not None:
             response += f"COLOR:{calendar_colour}\n"
 
         # Generate the variables
-        entity_id = escape(entity_id)
         dtstamp = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
         # Iterate through all the events
@@ -146,7 +144,7 @@ class iCalendarView(HomeAssistantView):
 
             # Create and hash the UID
             if ("summary" in e and e["summary"] is not None):
-                summary = escape(e['summary'])
+                summary = e['summary']
             else:
                 summary = None
 
@@ -169,14 +167,14 @@ class iCalendarView(HomeAssistantView):
                 and e["description"] is not None
             ):
                 response += (
-                    f"DESCRIPTION:{escape(e['description']).replace('\n', '\\n').replace('\r', '').rstrip()}\n"
+                    f"DESCRIPTION:{e['description'].replace('\n', '\\n').replace('\r', '').rstrip()}\n"
                 )
 
             if (
                 "location" in e
                 and e["location"] is not None
             ):
-                response += f"LOCATION:{escape(e['location']).replace('\n', '\\n').replace('\r', '').rstrip()}\n"
+                response += f"LOCATION:{e['location'].replace('\n', '\\n').replace('\r', '').rstrip()}\n"
 
             # Set colour for event, defined in config as per below:
             # colours:
