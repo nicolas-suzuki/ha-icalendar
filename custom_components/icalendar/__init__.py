@@ -132,7 +132,7 @@ class iCalendarView(HomeAssistantView):
         # Craft the iCalendar response
         response = "BEGIN:VCALENDAR\n"
         response += "VERSION:2.0\n"
-        response += "PRODID:-//Home Assistant//iCal Subscription 1.1//EN\n"
+        response += "PRODID:-//Home Assistant//iCal Subscription 2.0//EN\n"
         response += "CALSCALE:GREGORIAN\n"
         response += "METHOD:PUBLISH\n"
         response += fold_line(f"ORGANIZER;CN=\"{self._state.attributes['friendly_name']}\":MAILTO:{entity_id}@homeassistant.local") + "\n"
