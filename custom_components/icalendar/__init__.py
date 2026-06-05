@@ -131,17 +131,19 @@ class iCalendarView(HomeAssistantView):
 
         # Iterate through all the events
         for e in events:
-            try:
+            if "T" in e["start"] or ":" in e["start"]:
+                # Timed event
                 start = datetime.fromisoformat(e["start"]).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
                 end = datetime.fromisoformat(e["end"]).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-            except:
-                start = datetime.strptime(
-                    e["start"], "%Y-%m-%d"
-                ).strftime("%Y%m%d")
-                end = datetime.strptime(
-                    e["end"], "%Y-%m-%d"
-                ).strftime("%Y%m%d")
-
+                start_prop = f"DTSTART:{start}"
+                end_prop = f"DTEND:{end}"
+            else:
+                # All-day event
+                start = datetime.strptime(e["start"], "%Y-%m-%d").strftime("%Y%m%d")
+                end = datetime.strptime(e["end"], "%Y-%m-%d").strftime("%Y%m%d")
+                start_prop = f"DTSTART;VALUE=DATE:{start}"
+                end_prop = f"DTEND;VALUE=DATE:{end}"
+            
             # Create and hash the UID
             if ("summary" in e and e["summary"] is not None):
                 summary = e['summary']
@@ -155,8 +157,8 @@ class iCalendarView(HomeAssistantView):
 
             response += f"UID:{uid}\n"
             response += f"DTSTAMP:{dtstamp}\n"
-            response += f"DTSTART:{start}\n"
-            response += f"DTEND:{end}\n"
+            response += f"{start_prop}\n"
+            response += f"{end_prop}\n"
 
             # Add available optional attributes to the iCalendar response
             if summary is not None:
