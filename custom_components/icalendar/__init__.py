@@ -19,6 +19,7 @@ from .const import DOMAIN, CONTENT_TYPE_ICAL
 _LOGGER = logging.getLogger(__name__)
 
 
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the iCalendar component."""
     colours = None
@@ -38,6 +39,20 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     return False
 
+def fold_line(line: str) -> str:
+    """
+    Fold a long iCal line per RFC 5545 section 3.1.
+    Lines over 75 chars are split with a newline + leading space,
+    which calendar clients automatically unfold when reading.
+    """
+    if len(line) <= 75:
+        return line
+    chunks = []
+    while len(line) > 75:
+        chunks.append(line[:75])
+        line = " " + line[75:]   # continuation lines start with a space
+    chunks.append(line)
+    return "\n".join(chunks)
 
 class iCalendarView(HomeAssistantView):
     """Define the iCalendar view."""
@@ -120,9 +135,10 @@ class iCalendarView(HomeAssistantView):
         response += "PRODID:-//Home Assistant//iCal Subscription 1.1//EN\n"
         response += "CALSCALE:GREGORIAN\n"
         response += "METHOD:PUBLISH\n"
-        response += f"ORGANIZER;CN=\"{self._state.attributes['friendly_name']}\":MAILTO:{entity_id}@homeassistant.local\n"
-        response += f"NAME:{self._state.attributes['friendly_name']}\n"
-        response += f"X-WR-CALNAME:{self._state.attributes['friendly_name']}\n"
+        response += fold_line(f"ORGANIZER;CN=\"{self._state.attributes['friendly_name']}\":MAILTO:{entity_id}@homeassistant.local") + "\n"
+        response += fold_line(f"NAME:{self._state.attributes['friendly_name']}") + "\n"
+        response += fold_line(f"X-WR-CALNAME:{self._state.attributes['friendly_name']}") + "\n"
+
         if calendar_colour is not None:
             response += f"COLOR:{calendar_colour}\n"
 
@@ -162,21 +178,18 @@ class iCalendarView(HomeAssistantView):
 
             # Add available optional attributes to the iCalendar response
             if summary is not None:
-                response += f"SUMMARY:{summary.replace('\n', '\\n').replace('\r', '').rstrip()}\n"
-
+                response += fold_line(f"SUMMARY:{summary.replace(chr(10), chr(92)+'n').replace(chr(13), '').rstrip()}") + "\n"
             if (
                 "description" in e
                 and e["description"] is not None
             ):
-                response += (
-                    f"DESCRIPTION:{e['description'].replace('\n', '\\n').replace('\r', '').rstrip()}\n"
-                )
-
+                response += fold_line(f"DESCRIPTION:{e['description'].replace(chr(10), chr(92)+'n').replace(chr(13), '').rstrip()}") + "\n"
+                
             if (
                 "location" in e
                 and e["location"] is not None
             ):
-                response += f"LOCATION:{e['location'].replace('\n', '\\n').replace('\r', '').rstrip()}\n"
+                response += fold_line(f"LOCATION:{e['location'].replace(chr(10), chr(92)+'n').replace(chr(13), '').rstrip()}") + "\n"
 
             # Set colour for event, defined in config as per below:
             # colours:
